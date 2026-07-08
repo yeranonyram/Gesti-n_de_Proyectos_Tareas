@@ -11,7 +11,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // ✅ Registro de usuario (recibe un DTO)
+  // Registro de usuario (recibe un DTO)
   async register(createUserDto: CreateUserDto): Promise<{ access_token: string }> {
     // Verificar si el email ya existe
     const existingUser = await this.usersService.findByEmail(createUserDto.email);
@@ -33,7 +33,7 @@ export class AuthService {
     };
   }
 
-  // ✅ Login
+  //Login
   async login(email: string, password: string): Promise<{ access_token: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
