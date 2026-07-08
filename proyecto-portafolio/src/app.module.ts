@@ -22,7 +22,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: true, // ⚠️ Solo en desarrollo, para que cree las tablas solas
         logging: true,     // Para que veas las consultas SQL en consola (te hace sentir hacker)
       }),
-      inject: [ConfigService],
+      inject: [ConfigService], 
     }),
   ],
 })
