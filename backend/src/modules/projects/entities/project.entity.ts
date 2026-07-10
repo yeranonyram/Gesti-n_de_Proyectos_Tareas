@@ -7,8 +7,10 @@ import {
     DeleteDateColumn,
     CreateDateColumn,
     UpdateDateColumn,
+    OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Task } from 'src/modules/tasks/entities/task.entity';
 
 @Entity('projects')
 export class Project {
@@ -27,7 +29,7 @@ export class Project {
     @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at' }) // 👈 Soft Delete
+    @DeleteDateColumn({ name: 'deleted_at' }) //Soft Delete
     deletedAt: Date | null;
 
     // Relación: muchos proyectos pertenecen a un usuario
@@ -37,4 +39,7 @@ export class Project {
 
     @Column({ name: 'user_id' })
     userId: number; // Campo explícito para la FK
+
+    @OneToMany(() => Task, (task) => task.project)
+    tasks: Task[];
 }
