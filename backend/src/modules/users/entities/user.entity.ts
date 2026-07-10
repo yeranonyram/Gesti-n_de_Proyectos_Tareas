@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Project } from 'src/modules/projects/entities/project.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity()
 export class User {
@@ -13,4 +14,7 @@ export class User {
 
   @Column({ default: 'user' }) // 👈 Agregamos el campo role
   role: string; // Puede ser 'admin' o 'user'
+
+  @OneToMany(() => Project, (project) => project.user)
+  projects: Project[];
 }
