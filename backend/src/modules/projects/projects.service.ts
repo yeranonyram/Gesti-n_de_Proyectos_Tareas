@@ -1,13 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Repository, Like } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { QueryProjectDto } from './dto/query-project.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -16,7 +13,7 @@ export class ProjectsService {
     private projectRepository: Repository<Project>,
   ) {}
 
-  // Crear proyecto (asigna userId automáticamente)
+  // Crear proyecto
   async create(userId: number, createProjectDto: CreateProjectDto): Promise<Project> {
     const project = this.projectRepository.create({
       ...createProjectDto,
@@ -25,26 +22,47 @@ export class ProjectsService {
     return this.projectRepository.save(project);
   }
 
-  // Listar proyectos de un usuario (excluye eliminados)
-    async findAllByUser(userId: number): Promise<Project[]> {
-    return this.projectRepository.find({
-        where: { userId, deletedAt: IsNull() },
-        order: { createdAt: 'DESC' },
-    });
+  // Listar proyectos con paginación, filtros y ordenamiento
+  async findAllByUser(
+    userId: number,
+    query: QueryProjectDto,
+  ): Promise<{ data: Project[]; total: number; page: number; limit: number; totalPages: number }> {
+    const { page, limit, search } = query;
+
+    const where: any = { userId, deletedAt: IsNull() };
+
+    // Filtro por nombre (búsqueda parcial, case-insensitive)
+    if (search) {
+      where.name = Like(`%${search}%`);
     }
 
-  // Buscar un proyecto por ID (verifica pertenencia)
+    const [data, total] = await this.projectRepository.findAndCount({
+      where,
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  //  Buscar un proyecto por ID
   async findOne(id: number, userId: number): Promise<Project> {
     const project = await this.projectRepository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: ['user'], // Carga el usuario relacionado si lo necesitas
+      relations: ['user'],
     });
 
     if (!project) {
       throw new NotFoundException('Proyecto no encontrado');
     }
 
-    // Verificar que el proyecto pertenezca al usuario autenticado
     if (project.userId !== userId) {
       throw new ForbiddenException('No tienes permiso para acceder a este proyecto');
     }
@@ -52,11 +70,9 @@ export class ProjectsService {
     return project;
   }
 
-  // Actualizar proyecto (solo si es del usuario)
+  // Actualizar proyecto
   async update(id: number, userId: number, updateProjectDto: UpdateProjectDto): Promise<Project> {
-    // Primero verificar existencia y pertenencia
     await this.findOne(id, userId);
-
     await this.projectRepository.update(id, updateProjectDto);
     return this.findOne(id, userId);
   }
@@ -64,7 +80,42 @@ export class ProjectsService {
   //  Eliminar proyecto (soft delete)
   async remove(id: number, userId: number): Promise<void> {
     const project = await this.findOne(id, userId);
-    // Soft delete: asigna la fecha actual a deletedAt
     await this.projectRepository.softDelete(project.id);
   }
+
+async findAllPaginated(
+  userId: number,
+  queryDto: QueryProjectDto,
+): Promise<{ data: Project[]; total: number; page: number; limit: number; totalPages: number }> {
+  // Extraemos valores con valores por defecto
+  const page = queryDto.page || 1;
+  const limit = queryDto.limit || 10;
+  const search = queryDto.search || '';
+
+  const whereCondition: any = {
+    userId,
+    deletedAt: IsNull(),
+  };
+
+  if (search) {
+    whereCondition.name = Like(`%${search}%`);
+  }
+
+  const [data, total] = await this.projectRepository.findAndCount({
+    where: whereCondition,
+    order: { createdAt: 'DESC' },
+    skip: (page - 1) * limit,
+    take: limit,
+  });
+
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    totalPages,
+  };
+}
 }

@@ -9,10 +9,12 @@ import {
   UseGuards,
   Request,
   UnauthorizedException,
+  Query,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { QueryProjectDto } from './dto/query-project.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('projects')
@@ -20,13 +22,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  // Método auxiliar para extraer userId
   private getUserId(req: any): number {
     const userId = req.user?.id || req.user?.sub;
     if (!userId) {
       throw new UnauthorizedException('Usuario no autenticado');
     }
-    console.log('🔍 userId extraído:', userId);
     return userId;
   }
 
@@ -37,9 +37,9 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll(@Request() req) {
+  findAll(@Request() req, @Query() queryDto: QueryProjectDto) {
     const userId = this.getUserId(req);
-    return this.projectsService.findAllByUser(userId);
+    return this.projectsService.findAllPaginated(userId, queryDto);
   }
 
   @Get(':id')
