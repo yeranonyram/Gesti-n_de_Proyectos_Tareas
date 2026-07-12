@@ -16,6 +16,9 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { QueryTaskDto } from './dto/query-task.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { TaskStatsDto } from './dto/task-stats.dto';
+import { ApiOperation } from '@nestjs/swagger';
+import { ApiResponse } from '@nestjs/swagger';
 
 @Controller('projects/:projectId/tasks')
 @UseGuards(JwtAuthGuard)
@@ -81,4 +84,5 @@ export class TasksController {
     const userId = this.getUserId(req);
     return this.tasksService.remove(+id, userId);
   }
+
 }

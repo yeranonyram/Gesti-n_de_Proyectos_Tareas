@@ -11,6 +11,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { QueryTaskDto } from './dto/query-task.dto';
 import { ProjectsService } from '../projects/projects.service';
+import { TaskStatsDto } from './dto/task-stats.dto';
 
 @Injectable()
 export class TasksService {
@@ -99,4 +100,77 @@ export class TasksService {
     const task = await this.findOne(id, userId);
     await this.taskRepository.softDelete(task.id);
   }
+
+  async getStats(userId: number): Promise<TaskStatsDto> {
+  // 1. Total de tareas del usuario (no eliminadas)
+  const total = await this.taskRepository.count({
+    where: {
+      project: { userId }, // Relación con Project
+      deletedAt: IsNull(),
+    },
+  });
+
+  // 2. Conteo por estado
+  const statusResult = await this.taskRepository
+    .createQueryBuilder('task')
+    .select('task.status', 'status')
+    .addSelect('COUNT(task.id)', 'count')
+    .innerJoin('task.project', 'project')
+    .where('project.userId = :userId', { userId })
+    .andWhere('task.deletedAt IS NULL')
+    .groupBy('task.status')
+    .getRawMany();
+
+  const byStatus: Record<string, number> = {};
+  statusResult.forEach((row) => {
+    byStatus[row.status] = parseInt(row.count, 10);
+  });
+
+  // 3. Conteo por prioridad
+  const priorityResult = await this.taskRepository
+    .createQueryBuilder('task')
+    .select('task.priority', 'priority')
+    .addSelect('COUNT(task.id)', 'count')
+    .innerJoin('task.project', 'project')
+    .where('project.userId = :userId', { userId })
+    .andWhere('task.deletedAt IS NULL')
+    .groupBy('task.priority')
+    .getRawMany();
+
+  const byPriority: Record<string, number> = {};
+  priorityResult.forEach((row) => {
+    byPriority[row.priority] = parseInt(row.count, 10);
+  });
+
+  // 4. Tareas vencidas (dueDate < hoy y no completadas)
+  const overdue = await this.taskRepository
+    .createQueryBuilder('task')
+    .innerJoin('task.project', 'project')
+    .where('project.userId = :userId', { userId })
+    .andWhere('task.dueDate < :now', { now: new Date() })
+    .andWhere('task.status != :completed', { completed: 'completed' })
+    .andWhere('task.deletedAt IS NULL')
+    .getCount();
+
+  // 5. Tareas completadas en los últimos 7 días
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const completedLast7Days = await this.taskRepository
+    .createQueryBuilder('task')
+    .innerJoin('task.project', 'project')
+    .where('project.userId = :userId', { userId })
+    .andWhere('task.status = :completed', { completed: 'completed' })
+    .andWhere('task.updatedAt >= :sevenDaysAgo', { sevenDaysAgo })
+    .andWhere('task.deletedAt IS NULL')
+    .getCount();
+
+  return {
+    total,
+    byStatus,
+    byPriority,
+    overdue,
+    completedLast7Days,
+  };
+}
 }
