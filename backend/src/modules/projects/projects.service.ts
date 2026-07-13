@@ -5,12 +5,14 @@ import { Project } from './entities/project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { QueryProjectDto } from './dto/query-project.dto';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
+    private notificationsGateway: NotificationsGateway,
   ) {}
 
   // Crear proyecto
@@ -19,8 +21,16 @@ export class ProjectsService {
       ...createProjectDto,
       userId,
     });
-    return this.projectRepository.save(project);
-  }
+    const savedProject = await this.projectRepository.save(project);
+
+    // Notificar al usuario que creó el proyecto
+    this.notificationsGateway.sendNotification('projectCreated', {
+      userId: userId,
+      project: project,
+    });
+
+        return savedProject;
+    }
 
   // Listar proyectos con paginación, filtros y ordenamiento
   async findAllByUser(
@@ -86,36 +96,38 @@ export class ProjectsService {
 async findAllPaginated(
   userId: number,
   queryDto: QueryProjectDto,
-): Promise<{ data: Project[]; total: number; page: number; limit: number; totalPages: number }> {
-  // Extraemos valores con valores por defecto
-  const page = queryDto.page || 1;
-  const limit = queryDto.limit || 10;
-  const search = queryDto.search || '';
+  ): Promise<{ data: Project[]; total: number; page: number; limit: number; totalPages: number }> {
+    // Extraemos valores con valores por defecto
+    const page = queryDto.page || 1;
+    const limit = queryDto.limit || 10;
+    const search = queryDto.search || '';
 
-  const whereCondition: any = {
-    userId,
-    deletedAt: IsNull(),
-  };
+    const whereCondition: any = {
+      userId,
+      deletedAt: IsNull(),
+    };
 
-  if (search) {
-    whereCondition.name = Like(`%${search}%`);
+    if (search) {
+      whereCondition.name = Like(`%${search}%`);
+    }
+
+    const [data, total] = await this.projectRepository.findAndCount({
+      where: whereCondition,
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   }
 
-  const [data, total] = await this.projectRepository.findAndCount({
-    where: whereCondition,
-    order: { createdAt: 'DESC' },
-    skip: (page - 1) * limit,
-    take: limit,
-  });
 
-  const totalPages = Math.ceil(total / limit);
-
-  return {
-    data,
-    total,
-    page,
-    limit,
-    totalPages,
-  };
-}
 }

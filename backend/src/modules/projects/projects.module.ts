@@ -4,11 +4,13 @@ import { ProjectsService } from './projects.service';
 import { ProjectsController } from './projects.controller';
 import { Project } from './entities/project.entity';
 import { UsersModule } from '../users/users.module';
+import { NotificationsModule } from '../notifications/notifications.module'; 
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Project]),
-    UsersModule, // Para tener acceso a UsersService si se necesita en el futuro
+    UsersModule,
+    NotificationsModule, // 👈 Importar
   ],
   controllers: [ProjectsController],
   providers: [ProjectsService],
