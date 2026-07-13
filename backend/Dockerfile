@@ -22,7 +22,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/uploads ./uploads  
 
 # Crear carpeta uploads si no existe
-# RUN mkdir -p uploads
+RUN mkdir -p uploads
 
 EXPOSE 3000
 
