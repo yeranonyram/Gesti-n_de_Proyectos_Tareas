@@ -10,7 +10,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Task } from 'src/modules/tasks/entities/task.entity';
+import { Task } from '../../tasks/entities/task.entity';
+
 
 @Entity('projects')
 export class Project {
