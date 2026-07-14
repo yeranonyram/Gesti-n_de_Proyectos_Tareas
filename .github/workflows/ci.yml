@@ -30,7 +30,7 @@ jobs:
                
       # 3. Instalar dependencias
       - name: Instalar dependencias
-        run: npm ci
+        run: npm install --legacy-peer-deps
         working-directory: ./backend
       
       # 4. Ejecutar Linter
