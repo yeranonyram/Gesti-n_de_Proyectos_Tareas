@@ -11,54 +11,39 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { QueryTaskDto } from './dto/query-task.dto';
 import { ProjectsService } from '../projects/projects.service';
+import { TaskStatsDto } from './dto/task-stats.dto';
+import { EmailService } from '../email/email.service';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
-
+import { UsersService } from '../users/users.service';
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
-    private projectsService: ProjectsService,
-    private notificationsGateway: NotificationsGateway,
+    private projectsService: ProjectsService, // Para validar que el proyecto existe y pertenece al usuario
+    private emailService: EmailService,
+    private notificationsGateway: NotificationsGateway, 
+    private usersService: UsersService, 
   ) {}
 
-  // ✅ Crear tarea
-  async create(
-    userId: number,
-    projectId: number,
-    createTaskDto: CreateTaskDto,
-  ): Promise<Task> {
+  // Crear tarea
+  async create(userId: number, projectId: number, createTaskDto: CreateTaskDto): Promise<Task> {
     // Verificar que el proyecto existe y pertenece al usuario
     await this.projectsService.findOne(projectId, userId);
 
-    // Crear la tarea
     const task = this.taskRepository.create({
       ...createTaskDto,
       projectId,
     });
-    const savedTask = await this.taskRepository.save(task);
-
-    // Notificar creación (CORREGIDO: usar savedTask y evento 'taskCreated')
-    this.notificationsGateway.sendNotification('taskCreated', {
-      userId,
-      task: savedTask,
-    });
-
-    return savedTask;
+    return this.taskRepository.save(task);
   }
 
-  // ✅ Listar tareas de un proyecto con paginación y filtros
+  // Listar tareas de un proyecto con paginación y filtros
   async findAllByProject(
     userId: number,
     projectId: number,
     queryDto: QueryTaskDto,
-  ): Promise<{
-    data: Task[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
+  ): Promise<{ data: Task[]; total: number; page: number; limit: number; totalPages: number }> {
     // Verificar que el proyecto existe y pertenece al usuario
     await this.projectsService.findOne(projectId, userId);
 
@@ -90,7 +75,7 @@ export class TasksService {
     };
   }
 
-  // ✅ Buscar una tarea por ID (verifica que pertenezca al proyecto del usuario)
+  // Buscar una tarea por ID (verifica que pertenezca al proyecto del usuario)
   async findOne(id: number, userId: number): Promise<Task> {
     const task = await this.taskRepository.findOne({
       where: { id, deletedAt: IsNull() },
@@ -107,30 +92,31 @@ export class TasksService {
     return task;
   }
 
-  // ✅ Actualizar tarea
-  async update(
-    id: number,
-    userId: number,
-    updateTaskDto: UpdateTaskDto,
-  ): Promise<Task> {
+  //  Actualizar tarea
+  async update(id: number, userId: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
     const task = await this.findOne(id, userId);
     const oldStatus = task.status;
-
     await this.taskRepository.update(id, updateTaskDto);
     const updatedTask = await this.findOne(id, userId);
 
-    // Si el estado cambió a 'completed', notificar evento específico
+    // Si el estado cambió a 'completed', notificar y enviar correo
     if (oldStatus !== 'completed' && updatedTask.status === 'completed') {
-      this.notificationsGateway.sendNotification('taskCompleted', {
-        userId,
-        taskId: updatedTask.id,
-        title: updatedTask.title,
-        projectId: updatedTask.projectId,
-        timestamp: new Date(),
-      });
+      // Obtener email del usuario
+      const user = await this.usersService.findById(userId);
+      if (user) {
+        // Aquí enviar correo (lo haremos en el próximo paso)
+        // Por ahora solo notificamos por WebSocket
+        this.notificationsGateway.sendNotification('taskCompleted', {
+          userId,
+          taskId: updatedTask.id,
+          title: updatedTask.title,
+          projectId: updatedTask.projectId,
+          timestamp: new Date(),
+        });
+      }
     }
 
-    // Notificar actualización genérica (CORREGIDO: usar sendNotification)
+    // Notificar actualización genérica
     this.notificationsGateway.sendNotification('taskUpdated', {
       userId,
       taskId: updatedTask.id,
@@ -143,97 +129,87 @@ export class TasksService {
     return updatedTask;
   }
 
-  // ✅ Eliminar tarea (soft delete)
+  //  Eliminar tarea (soft delete)
   async remove(id: number, userId: number): Promise<void> {
     const task = await this.findOne(id, userId);
     await this.taskRepository.softDelete(task.id);
 
-    // Notificar eliminación (CORREGIDO: mantener consistencia)
     this.notificationsGateway.sendNotification('taskDeleted', {
       userId,
       taskId: id,
-      title: task.title,
-      projectId: task.projectId,
     });
   }
 
-  // ✅ Estadísticas del dashboard
-  async getStats(userId: number): Promise<{
-    total: number;
-    byStatus: Record<string, number>;
-    byPriority: Record<string, number>;
-    overdue: number;
-    completedLast7Days: number;
-  }> {
-    // 1. Total de tareas del usuario (no eliminadas)
-    const total = await this.taskRepository.count({
-      where: {
-        project: { userId },
-        deletedAt: IsNull(),
-      },
-    });
+  async getStats(userId: number): Promise<TaskStatsDto> {
+  // 1. Total de tareas del usuario (no eliminadas)
+  const total = await this.taskRepository.count({
+    where: {
+      project: { userId }, // Relación con Project
+      deletedAt: IsNull(),
+    },
+  });
 
-    // 2. Conteo por estado
-    const statusResult = await this.taskRepository
-      .createQueryBuilder('task')
-      .select('task.status', 'status')
-      .addSelect('COUNT(task.id)', 'count')
-      .innerJoin('task.project', 'project')
-      .where('project.userId = :userId', { userId })
-      .andWhere('task.deletedAt IS NULL')
-      .groupBy('task.status')
-      .getRawMany();
+  // 2. Conteo por estado
+  const statusResult = await this.taskRepository
+    .createQueryBuilder('task')
+    .select('task.status', 'status')
+    .addSelect('COUNT(task.id)', 'count')
+    .innerJoin('task.project', 'project')
+    .where('project.userId = :userId', { userId })
+    .andWhere('task.deletedAt IS NULL')
+    .groupBy('task.status')
+    .getRawMany();
 
-    const byStatus: Record<string, number> = {};
-    statusResult.forEach((row) => {
-      byStatus[row.status] = parseInt(row.count, 10);
-    });
+  const byStatus: Record<string, number> = {};
+  statusResult.forEach((row) => {
+    byStatus[row.status] = parseInt(row.count, 10);
+  });
 
-    // 3. Conteo por prioridad
-    const priorityResult = await this.taskRepository
-      .createQueryBuilder('task')
-      .select('task.priority', 'priority')
-      .addSelect('COUNT(task.id)', 'count')
-      .innerJoin('task.project', 'project')
-      .where('project.userId = :userId', { userId })
-      .andWhere('task.deletedAt IS NULL')
-      .groupBy('task.priority')
-      .getRawMany();
+  // 3. Conteo por prioridad
+  const priorityResult = await this.taskRepository
+    .createQueryBuilder('task')
+    .select('task.priority', 'priority')
+    .addSelect('COUNT(task.id)', 'count')
+    .innerJoin('task.project', 'project')
+    .where('project.userId = :userId', { userId })
+    .andWhere('task.deletedAt IS NULL')
+    .groupBy('task.priority')
+    .getRawMany();
 
-    const byPriority: Record<string, number> = {};
-    priorityResult.forEach((row) => {
-      byPriority[row.priority] = parseInt(row.count, 10);
-    });
+  const byPriority: Record<string, number> = {};
+  priorityResult.forEach((row) => {
+    byPriority[row.priority] = parseInt(row.count, 10);
+  });
 
-    // 4. Tareas vencidas (dueDate < hoy y no completadas)
-    const overdue = await this.taskRepository
-      .createQueryBuilder('task')
-      .innerJoin('task.project', 'project')
-      .where('project.userId = :userId', { userId })
-      .andWhere('task.dueDate < :now', { now: new Date() })
-      .andWhere('task.status != :completed', { completed: 'completed' })
-      .andWhere('task.deletedAt IS NULL')
-      .getCount();
+  // 4. Tareas vencidas (dueDate < hoy y no completadas)
+  const overdue = await this.taskRepository
+    .createQueryBuilder('task')
+    .innerJoin('task.project', 'project')
+    .where('project.userId = :userId', { userId })
+    .andWhere('task.dueDate < :now', { now: new Date() })
+    .andWhere('task.status != :completed', { completed: 'completed' })
+    .andWhere('task.deletedAt IS NULL')
+    .getCount();
 
-    // 5. Tareas completadas en los últimos 7 días
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  // 5. Tareas completadas en los últimos 7 días
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const completedLast7Days = await this.taskRepository
-      .createQueryBuilder('task')
-      .innerJoin('task.project', 'project')
-      .where('project.userId = :userId', { userId })
-      .andWhere('task.status = :completed', { completed: 'completed' })
-      .andWhere('task.updatedAt >= :sevenDaysAgo', { sevenDaysAgo })
-      .andWhere('task.deletedAt IS NULL')
-      .getCount();
+  const completedLast7Days = await this.taskRepository
+    .createQueryBuilder('task')
+    .innerJoin('task.project', 'project')
+    .where('project.userId = :userId', { userId })
+    .andWhere('task.status = :completed', { completed: 'completed' })
+    .andWhere('task.updatedAt >= :sevenDaysAgo', { sevenDaysAgo })
+    .andWhere('task.deletedAt IS NULL')
+    .getCount();
 
-    return {
-      total,
-      byStatus,
-      byPriority,
-      overdue,
-      completedLast7Days,
-    };
-  }
+  return {
+    total,
+    byStatus,
+    byPriority,
+    overdue,
+    completedLast7Days,
+  };
+}
 }

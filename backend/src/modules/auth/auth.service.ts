@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -9,6 +10,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   // Registro de usuario (recibe un DTO)
@@ -22,6 +24,7 @@ export class AuthService {
     if (existingUser) {
       throw new UnauthorizedException('El email ya está registrado');
     }
+    
 
     // Hashear contraseña
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -35,6 +38,11 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+    await this.emailService.sendWelcomeEmail(
+      createUserDto.email,
+      createUserDto.email.split('@')[0] // Nombre temporal
+    );
+
   }
 
   //Login

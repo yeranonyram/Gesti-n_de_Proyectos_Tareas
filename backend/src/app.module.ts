@@ -5,7 +5,8 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { TasksModule } from './modules/tasks/tasks.module';
-import { NotificationsModule } from './modules/notifications/notifications.module';
+import { FilesModule } from './modules/files/files.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -23,17 +24,18 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'], //Le dice a TypeORM dónde buscar las entidades.
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],//Le dice a TypeORM dónde buscar las entidades.
         synchronize: true, // ⚠️ Solo en desarrollo, para que cree las tablas solas
-        logging: true, // Para que veas las consultas SQL en consola (te hace sentir hacker)
+        logging: true,     // Para que veas las consultas SQL en consola (te hace sentir hacker)
       }),
-      inject: [ConfigService],
+      inject: [ConfigService], 
     }),
     UsersModule,
     AuthModule,
     ProjectsModule,
     TasksModule,
-    NotificationsModule,
+    FilesModule,
+    EmailModule,
   ],
 })
 export class AppModule {}

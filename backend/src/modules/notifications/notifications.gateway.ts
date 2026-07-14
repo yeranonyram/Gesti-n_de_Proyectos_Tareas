@@ -8,13 +8,11 @@ import {
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
-  cors: { origin: '*' }, // Configura CORS para desarrollo, ajusta en producción
+  cors: { origin: '*' },
 })
-export class NotificationsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  server: Server;
+  server: any;
 
   handleConnection(client: Socket) {
     console.log(`Cliente conectado: ${client.id}`);
@@ -24,13 +22,19 @@ export class NotificationsGateway
     console.log(`Cliente desconectado: ${client.id}`);
   }
 
-  // Método para enviar notificaciones a todos los clientes
+  @SubscribeMessage('joinRoom')
+  handleJoinRoom(client: Socket, userId: string) {
+    client.join(`user_${userId}`);
+    console.log(`Cliente ${client.id} unido a sala user_${userId}`);
+  }
+
+  // Notificar a todos los clientes
   sendNotification(event: string, data: any) {
     this.server.emit(event, data);
   }
 
-  // También puedes enviar a un cliente específico si tienes su ID
-  sendToClient(clientId: string, event: string, data: any) {
-    this.server.to(clientId).emit(event, data);
+  // Notificar a un usuario específico (por sala)
+  notifyUser(userId: number, event: string, data: any) {
+    this.server.to(`user_${userId}`).emit(event, data);
   }
 }

@@ -7,8 +7,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Project } from '../../projects/entities/project.entity';
+import { File } from '../../files/entities/file.entity';
 
 //Exportar enums para usarlos en DTOs y otros lugares
 export enum TaskStatus {
@@ -66,4 +68,9 @@ export class Task {
 
   @Column({ name: 'project_id' })
   projectId: number;
+
+  // relacion con files
+  @OneToMany(() => File, (file) => file.task)
+  files: File[];
+
 }
