@@ -16,7 +16,14 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { QueryTaskDto } from './dto/query-task.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 
 @ApiTags('Tareas')
 @Controller('projects/:projectId/tasks')
@@ -48,12 +55,23 @@ export class TasksController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener todas las tareas de un proyecto (con paginación y filtros)' })
+  @ApiOperation({
+    summary:
+      'Obtener todas las tareas de un proyecto (con paginación y filtros)',
+  })
   @ApiParam({ name: 'projectId', example: 1 })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
-  @ApiQuery({ name: 'status', required: false, enum: ['pending', 'in_progress', 'completed'] })
-  @ApiQuery({ name: 'priority', required: false, enum: ['low', 'medium', 'high'] })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['pending', 'in_progress', 'completed'],
+  })
+  @ApiQuery({
+    name: 'priority',
+    required: false,
+    enum: ['low', 'medium', 'high'],
+  })
   @ApiQuery({ name: 'search', required: false, example: 'diseñar' })
   @ApiResponse({ status: 200, description: 'Lista paginada de tareas.' })
   findAll(

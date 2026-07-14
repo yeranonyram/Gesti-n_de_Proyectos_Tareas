@@ -8,7 +8,11 @@ export class CreateProjectDto {
   @MaxLength(100)
   name: string;
 
-  @ApiProperty({ example: 'Descripción del proyecto', description: 'Descripción (opcional)', required: false })
+  @ApiProperty({
+    example: 'Descripción del proyecto',
+    description: 'Descripción (opcional)',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   description?: string;

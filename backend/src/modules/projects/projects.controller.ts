@@ -16,7 +16,14 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { QueryProjectDto } from './dto/query-project.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 
 @ApiTags('Proyectos')
 @Controller('projects')
@@ -42,7 +49,10 @@ export class ProjectsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener todos los proyectos del usuario autenticado (con paginación y filtros)' })
+  @ApiOperation({
+    summary:
+      'Obtener todos los proyectos del usuario autenticado (con paginación y filtros)',
+  })
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiQuery({ name: 'search', required: false, example: 'mi proyecto' })

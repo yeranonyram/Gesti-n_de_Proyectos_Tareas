@@ -3,8 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TasksService } from './tasks.service';
 import { TasksController } from './tasks.controller';
 import { Task } from './entities/task.entity';
-import { ProjectsModule } from '../projects/projects.module'; 
-import { NotificationsModule } from '../notifications/notifications.module'; 
+import { ProjectsModule } from '../projects/projects.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [

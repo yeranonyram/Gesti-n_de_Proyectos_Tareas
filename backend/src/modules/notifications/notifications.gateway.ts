@@ -10,7 +10,9 @@ import { Server, Socket } from 'socket.io';
 @WebSocketGateway({
   cors: { origin: '*' }, // Configura CORS para desarrollo, ajusta en producción
 })
-export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 

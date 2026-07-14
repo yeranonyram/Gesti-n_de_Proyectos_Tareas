@@ -71,7 +71,10 @@ describe('TasksService', () => {
 
       const result = await service.create(userId, projectId, createTaskDto);
       expect(result).toEqual(mockTask);
-      expect(mockProjectsService.findOne).toHaveBeenCalledWith(projectId, userId);
+      expect(mockProjectsService.findOne).toHaveBeenCalledWith(
+        projectId,
+        userId,
+      );
     });
   });
 

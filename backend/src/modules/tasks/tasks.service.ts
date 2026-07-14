@@ -23,7 +23,11 @@ export class TasksService {
   ) {}
 
   // ✅ Crear tarea
-  async create(userId: number, projectId: number, createTaskDto: CreateTaskDto): Promise<Task> {
+  async create(
+    userId: number,
+    projectId: number,
+    createTaskDto: CreateTaskDto,
+  ): Promise<Task> {
     // Verificar que el proyecto existe y pertenece al usuario
     await this.projectsService.findOne(projectId, userId);
 
@@ -48,7 +52,13 @@ export class TasksService {
     userId: number,
     projectId: number,
     queryDto: QueryTaskDto,
-  ): Promise<{ data: Task[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    data: Task[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     // Verificar que el proyecto existe y pertenece al usuario
     await this.projectsService.findOne(projectId, userId);
 
@@ -98,10 +108,14 @@ export class TasksService {
   }
 
   // ✅ Actualizar tarea
-  async update(id: number, userId: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
+  async update(
+    id: number,
+    userId: number,
+    updateTaskDto: UpdateTaskDto,
+  ): Promise<Task> {
     const task = await this.findOne(id, userId);
     const oldStatus = task.status;
-    
+
     await this.taskRepository.update(id, updateTaskDto);
     const updatedTask = await this.findOne(id, userId);
 

@@ -23,11 +23,11 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],//Le dice a TypeORM dónde buscar las entidades.
+        entities: [__dirname + '/**/*.entity{.ts,.js}'], //Le dice a TypeORM dónde buscar las entidades.
         synchronize: true, // ⚠️ Solo en desarrollo, para que cree las tablas solas
-        logging: true,     // Para que veas las consultas SQL en consola (te hace sentir hacker)
+        logging: true, // Para que veas las consultas SQL en consola (te hace sentir hacker)
       }),
-      inject: [ConfigService], 
+      inject: [ConfigService],
     }),
     UsersModule,
     AuthModule,

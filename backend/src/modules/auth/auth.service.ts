@@ -12,9 +12,13 @@ export class AuthService {
   ) {}
 
   // Registro de usuario (recibe un DTO)
-  async register(createUserDto: CreateUserDto): Promise<{ access_token: string }> {
+  async register(
+    createUserDto: CreateUserDto,
+  ): Promise<{ access_token: string }> {
     // Verificar si el email ya existe
-    const existingUser = await this.usersService.findByEmail(createUserDto.email);
+    const existingUser = await this.usersService.findByEmail(
+      createUserDto.email,
+    );
     if (existingUser) {
       throw new UnauthorizedException('El email ya está registrado');
     }
@@ -34,7 +38,10 @@ export class AuthService {
   }
 
   //Login
-  async login(email: string, password: string): Promise<{ access_token: string }> {
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{ access_token: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');

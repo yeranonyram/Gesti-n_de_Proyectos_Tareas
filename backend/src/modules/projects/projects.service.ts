@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository, Like } from 'typeorm';
 import { Project } from './entities/project.entity';
@@ -16,7 +20,10 @@ export class ProjectsService {
   ) {}
 
   // Crear proyecto
-  async create(userId: number, createProjectDto: CreateProjectDto): Promise<Project> {
+  async create(
+    userId: number,
+    createProjectDto: CreateProjectDto,
+  ): Promise<Project> {
     const project = this.projectRepository.create({
       ...createProjectDto,
       userId,
@@ -29,14 +36,20 @@ export class ProjectsService {
       project: project,
     });
 
-        return savedProject;
-    }
+    return savedProject;
+  }
 
   // Listar proyectos con paginación, filtros y ordenamiento
   async findAllByUser(
     userId: number,
     query: QueryProjectDto,
-  ): Promise<{ data: Project[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    data: Project[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const { page, limit, search } = query;
 
     const where: any = { userId, deletedAt: IsNull() };
@@ -74,14 +87,20 @@ export class ProjectsService {
     }
 
     if (project.userId !== userId) {
-      throw new ForbiddenException('No tienes permiso para acceder a este proyecto');
+      throw new ForbiddenException(
+        'No tienes permiso para acceder a este proyecto',
+      );
     }
 
     return project;
   }
 
   // Actualizar proyecto
-  async update(id: number, userId: number, updateProjectDto: UpdateProjectDto): Promise<Project> {
+  async update(
+    id: number,
+    userId: number,
+    updateProjectDto: UpdateProjectDto,
+  ): Promise<Project> {
     await this.findOne(id, userId);
     await this.projectRepository.update(id, updateProjectDto);
     return this.findOne(id, userId);
@@ -93,10 +112,16 @@ export class ProjectsService {
     await this.projectRepository.softDelete(project.id);
   }
 
-async findAllPaginated(
-  userId: number,
-  queryDto: QueryProjectDto,
-  ): Promise<{ data: Project[]; total: number; page: number; limit: number; totalPages: number }> {
+  async findAllPaginated(
+    userId: number,
+    queryDto: QueryProjectDto,
+  ): Promise<{
+    data: Project[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     // Extraemos valores con valores por defecto
     const page = queryDto.page || 1;
     const limit = queryDto.limit || 10;
@@ -128,6 +153,4 @@ async findAllPaginated(
       totalPages,
     };
   }
-
-
 }

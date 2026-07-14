@@ -12,7 +12,10 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Registrar un nuevo usuario' })
   @ApiResponse({ status: 201, description: 'Usuario registrado exitosamente.' })
-  @ApiResponse({ status: 400, description: 'Datos inválidos o email ya registrado.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos inválidos o email ya registrado.',
+  })
   @ApiBody({ type: CreateUserDto })
   register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
@@ -20,7 +23,10 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Iniciar sesión' })
-  @ApiResponse({ status: 200, description: 'Login exitoso, retorna un token JWT.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Login exitoso, retorna un token JWT.',
+  })
   @ApiResponse({ status: 401, description: 'Credenciales inválidas.' })
   @ApiBody({ type: LoginDto })
   login(@Body() loginDto: LoginDto) {

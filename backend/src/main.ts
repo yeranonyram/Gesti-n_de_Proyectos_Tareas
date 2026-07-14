@@ -20,7 +20,7 @@ async function bootstrap() {
     .setTitle('API de Gestión de Proyectos y Tareas')
     .setDescription(
       'API RESTful para gestionar usuarios, proyectos y tareas. ' +
-      'Incluye autenticación JWT, paginación, filtros y soft delete.',
+        'Incluye autenticación JWT, paginación, filtros y soft delete.',
     )
     .setVersion('1.0')
     .addBearerAuth(
