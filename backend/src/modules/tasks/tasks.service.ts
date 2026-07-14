@@ -12,13 +12,18 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { QueryTaskDto } from './dto/query-task.dto';
 import { ProjectsService } from '../projects/projects.service';
 import { TaskStatsDto } from './dto/task-stats.dto';
-
+import { EmailService } from '../email/email.service';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { UsersService } from '../users/users.service';
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private taskRepository: Repository<Task>,
     private projectsService: ProjectsService, // Para validar que el proyecto existe y pertenece al usuario
+    private emailService: EmailService,
+    private notificationsGateway: NotificationsGateway, 
+    private usersService: UsersService, 
   ) {}
 
   // Crear tarea
@@ -89,16 +94,50 @@ export class TasksService {
 
   //  Actualizar tarea
   async update(id: number, userId: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
-    // Primero verificar existencia y permiso
-    await this.findOne(id, userId);
+    const task = await this.findOne(id, userId);
+    const oldStatus = task.status;
     await this.taskRepository.update(id, updateTaskDto);
-    return this.findOne(id, userId);
+    const updatedTask = await this.findOne(id, userId);
+
+    // Si el estado cambió a 'completed', notificar y enviar correo
+    if (oldStatus !== 'completed' && updatedTask.status === 'completed') {
+      // Obtener email del usuario
+      const user = await this.usersService.findById(userId);
+      if (user) {
+        // Aquí enviar correo (lo haremos en el próximo paso)
+        // Por ahora solo notificamos por WebSocket
+        this.notificationsGateway.sendNotification('taskCompleted', {
+          userId,
+          taskId: updatedTask.id,
+          title: updatedTask.title,
+          projectId: updatedTask.projectId,
+          timestamp: new Date(),
+        });
+      }
+    }
+
+    // Notificar actualización genérica
+    this.notificationsGateway.sendNotification('taskUpdated', {
+      userId,
+      taskId: updatedTask.id,
+      title: updatedTask.title,
+      projectId: updatedTask.projectId,
+      status: updatedTask.status,
+      timestamp: new Date(),
+    });
+
+    return updatedTask;
   }
 
   //  Eliminar tarea (soft delete)
   async remove(id: number, userId: number): Promise<void> {
     const task = await this.findOne(id, userId);
     await this.taskRepository.softDelete(task.id);
+
+    this.notificationsGateway.sendNotification('taskDeleted', {
+      userId,
+      taskId: id,
+    });
   }
 
   async getStats(userId: number): Promise<TaskStatsDto> {
