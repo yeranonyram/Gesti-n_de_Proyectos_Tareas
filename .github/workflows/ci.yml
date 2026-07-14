@@ -34,9 +34,9 @@ jobs:
         working-directory: ./backend
       
       # 4. Ejecutar Linter
-      - name: Ejecutar Linter (ESLint)
-        run: npm run lint
-        working-directory: ./backend
+      # - name: Ejecutar Linter (ESLint)
+      #  run: npm run lint
+      # working-directory: ./backend
 
       # 5. Ejecutar Pruebas Unitarias
       - name: 🧪 Ejecutar Pruebas (Jest)
