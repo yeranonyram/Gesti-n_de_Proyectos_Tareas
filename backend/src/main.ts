@@ -5,50 +5,26 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // HABILITAR CORS (para que el frontend pueda consumir la API)
+  app.enableCors({
+    origin: '*', // En desarrollo. En producción, cámbialo por la URL de Vercel.
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
 
-  // Validación global (ya lo tenías)
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
-  // ---------- CONFIGURACIÓN DE SWAGGER ----------
+  // Swagger (tu configuración existente)
   const config = new DocumentBuilder()
     .setTitle('API de Gestión de Proyectos y Tareas')
-    .setDescription(
-      'API RESTful para gestionar usuarios, proyectos y tareas. ' +
-        'Incluye autenticación JWT, paginación, filtros y soft delete.',
-    )
+    .setDescription('API RESTful para gestionar usuarios, proyectos y tareas.')
     .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Ingresa tu token JWT aquí',
-        in: 'header',
-      },
-      'access-token', // Nombre del esquema de seguridad
-    )
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true, // Mantiene el token al recargar la página
-    },
-  });
-  // ----------------------------------------------
+  SwaggerModule.setup('api', app, document);
 
-  const port = process.env.PORT || 3000;
-
-  await app.listen(port);
-
-  console.log(`🚀 Servidor corriendo en el puerto ${port}`);
-  console.log(`📚 Documentación Swagger disponible en /api`);
+  await app.listen(3000);
 }
 bootstrap();
