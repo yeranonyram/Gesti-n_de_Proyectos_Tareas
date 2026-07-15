@@ -8,8 +8,19 @@ async function bootstrap() {
   
   // HABILITAR CORS (para que el frontend pueda consumir la API)
   app.enableCors({
-    origin: '*', // En desarrollo. En producción, cámbialo por la URL de Vercel.
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'https://tu-frontend.vercel.app',
+    ],
+    methods: [
+      'GET',
+      'HEAD',
+      'PUT',
+      'PATCH',
+      'POST',
+      'DELETE',
+    ],
     credentials: true,
   });
 
