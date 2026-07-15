@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import Login from '../pages/Login';
+import ProtectedRoute from './ProtectedRoute';
 import Dashboard from '../pages/Dashboard';
 
 export default function AppRouter() {
@@ -19,7 +20,11 @@ export default function AppRouter() {
 
         <Route 
             path="/dashboard" 
-            element={<Dashboard />} 
+              element={
+                <ProtectedRoute>
+                <Dashboard />
+                </ProtectedRoute>
+            }
         />
 
         <Route 
