@@ -1,15 +1,7 @@
-import { useEffect } from 'react';
-import { authService } from './services/auth.service';
+import AppRouter from './routes/AppRouter';
 
 function App() {
-  useEffect(() => {
-    authService
-      .me()
-      .then((res) => console.log(res.data))
-      .catch((err) => console.error(err));
-  }, []);
-
-  return <h1>Frontend conectado 🚀</h1>;
+  return <AppRouter />;
 }
 
 export default App;

@@ -1,26 +1,11 @@
 import api from '../api/client';
+import { LoginDto, LoginResponse } from '../types/auth';
 
-export interface LoginDto {
-  email: string;
-  password: string;
+class AuthService {
+  async login(data: LoginDto): Promise<LoginResponse> {
+    const response = await api.post<LoginResponse>('/auth/login', data);
+    return response.data;
+  }
 }
 
-export interface RegisterDto {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export const authService = {
-  login(data: LoginDto) {
-    return api.post('/auth/login', data);
-  },
-
-  register(data: RegisterDto) {
-    return api.post('/auth/register', data);
-  },
-
-  me() {
-    return api.get('/users/me');
-  },
-};
+export default new AuthService();
