@@ -1,15 +1,32 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import Login from '../pages/Login';
+import Dashboard from '../pages/Dashboard';
 
 export default function AppRouter() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+        <Routes>
 
-      <Route path="/login" element={<Login />} />
+        <Route 
+            path="/" 
+            element={<Navigate to="/login" replace />} 
+        />
 
-      <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
-    </Routes>
+        <Route 
+            path="/login" 
+            element={<Login />} 
+        />
+
+        <Route 
+            path="/dashboard" 
+            element={<Dashboard />} 
+        />
+
+        <Route 
+            path="*" 
+            element={<h1>404 - Página no encontrada</h1>} 
+        />
+
+        </Routes>
   );
 }
