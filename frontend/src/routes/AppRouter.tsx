@@ -4,6 +4,7 @@ import Login from '../pages/Login';
 import ProtectedRoute from './ProtectedRoute';
 import Dashboard from '../pages/Dashboard';
 import Projects from '../pages/Projects';
+import ProjectDetails from '../pages/ProjectDetail';
 
 export default function AppRouter() {
   return (
@@ -34,6 +35,15 @@ export default function AppRouter() {
                 <ProtectedRoute>
                 <Projects/>
                 </ProtectedRoute>    
+            }
+        />
+
+        <Route
+            path='/projects/:id'
+            element={
+                <ProtectedRoute>
+                <ProjectDetails/>
+                </ProtectedRoute>
             }
         />
 

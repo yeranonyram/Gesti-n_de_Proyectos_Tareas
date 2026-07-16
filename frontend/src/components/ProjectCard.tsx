@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import type { Project } from '../types/project';
 
 interface Props {
@@ -11,6 +12,8 @@ export default function ProjectCard({
   onDelete,
   onEdit,
 }: Props) {
+  const navigate = useNavigate();
+
   return (
     <div
       className="
@@ -59,6 +62,20 @@ export default function ProjectCard({
         </span>
 
         <div className="flex gap-3">
+          <button
+            onClick={() => navigate(`/projects/${project.id}`)}
+            className="
+              bg-blue-600
+              text-white
+              px-4
+              py-2
+              rounded-lg
+              hover:bg-blue-700
+            "
+          >
+            Ver tareas
+          </button>
+
           <button
             onClick={() => onEdit(project)}
             className="
