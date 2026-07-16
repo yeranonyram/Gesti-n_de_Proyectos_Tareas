@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import ProtectedRoute from './ProtectedRoute';
 import Dashboard from '../pages/Dashboard';
+import Projects from '../pages/Projects';
 
 export default function AppRouter() {
   return (
@@ -24,6 +25,15 @@ export default function AppRouter() {
                 <ProtectedRoute>
                 <Dashboard />
                 </ProtectedRoute>
+            }
+        />
+
+        <Route
+            path="/projects"
+            element={
+                <ProtectedRoute>
+                <Projects/>
+                </ProtectedRoute>    
             }
         />
 

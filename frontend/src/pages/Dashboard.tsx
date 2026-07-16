@@ -1,12 +1,42 @@
+import { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { FaFolderOpen, FaTasks, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import type { JwtPayload } from '../types/jwt';
-
+import projectService from '../services/project.service';
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [totalProjects, setTotalProjects] = useState(0);
 
   const token = localStorage.getItem('token');
+  useEffect(() => {
+
+  async function loadStats(){
+
+    try {
+
+      const response = await projectService.getProjects();
+
+
+      setTotalProjects(response.total);
+
+
+    } catch(error){
+
+      console.error(
+        'Error cargando proyectos:',
+        error
+      );
+
+    }
+
+  }
+
+
+  loadStats();
+
+
+}, []);
 
   let email = '';
 
@@ -90,9 +120,7 @@ export default function Dashboard() {
                 </p>
 
                 <h3 className="text-5xl font-bold mt-2">
-
-                  0
-
+                  {totalProjects}
                 </h3>
 
               </div>
