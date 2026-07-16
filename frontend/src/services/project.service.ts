@@ -52,10 +52,8 @@ class ProjectService {
 
 }
 
-  async remove(id:number){
-    const response = await api.delete(
-      `/projects/${id}`
-    );
+  async delete(id: number) {
+    const response = await api.delete(`/projects/${id}`);
     return response.data;
   }
 }

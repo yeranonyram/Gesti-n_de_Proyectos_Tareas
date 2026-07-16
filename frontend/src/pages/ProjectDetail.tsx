@@ -23,9 +23,46 @@ export default function ProjectDetail() {
     }
   };
 
-  useEffect(() => {
+    useEffect(() => {
     loadTasks();
-  }, [id]);
+
+    const refreshTasks = () => {
+        console.log('🔄 Actualizando tareas...');
+        loadTasks();
+    };
+
+    window.addEventListener(
+        'taskUpdated',
+        refreshTasks,
+    );
+
+    window.addEventListener(
+        'taskDeleted',
+        refreshTasks,
+    );
+
+    window.addEventListener(
+        'taskCompleted',
+        refreshTasks,
+    );
+
+    return () => {
+        window.removeEventListener(
+        'taskUpdated',
+        refreshTasks,
+        );
+
+        window.removeEventListener(
+        'taskDeleted',
+        refreshTasks,
+        );
+
+        window.removeEventListener(
+        'taskCompleted',
+        refreshTasks,
+        );
+    };
+    }, [id]);
 
   const handleSubmitTask = async (data: CreateTaskDto) => {
     if (selectedTask) {

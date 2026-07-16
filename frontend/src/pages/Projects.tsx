@@ -14,6 +14,23 @@ export default function Projects() {
 
   useEffect(() => {
     loadProjects();
+
+    const refreshProjects = () => {
+      console.log('🔄 Actualizando proyectos...');
+      loadProjects();
+    };
+
+    window.addEventListener(
+      'projectCreated',
+      refreshProjects,
+    );
+
+    return () => {
+      window.removeEventListener(
+        'projectCreated',
+        refreshProjects,
+      );
+    };
   }, []);
 
   async function loadProjects() {
