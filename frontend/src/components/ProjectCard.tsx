@@ -42,7 +42,7 @@ export default function ProjectCard({
           mb-4
         "
       >
-        {project.description || 'Sin descripción'}
+        {project.description || "Sin descripción"}
       </p>
 
       <div
@@ -61,16 +61,18 @@ export default function ProjectCard({
           {new Date(project.createdAt).toLocaleDateString()}
         </span>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => navigate(`/projects/${project.id}`)}
             className="
               bg-blue-600
               text-white
-              px-4
-              py-2
+              px-2
+              py-1
+              text-sm
               rounded-lg
               hover:bg-blue-700
+              transition
             "
           >
             Ver tareas
@@ -81,10 +83,12 @@ export default function ProjectCard({
             className="
               bg-yellow-500
               text-white
-              px-4
-              py-2
+              px-2
+              py-1
+              text-sm
               rounded-lg
               hover:bg-yellow-600
+              transition
             "
           >
             Editar
@@ -95,10 +99,12 @@ export default function ProjectCard({
             className="
               bg-red-500
               text-white
-              px-4
-              py-2
+              px-2
+              py-1
+              text-sm
               rounded-lg
               hover:bg-red-600
+              transition
             "
           >
             Eliminar
