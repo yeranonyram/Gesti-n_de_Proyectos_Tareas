@@ -2,7 +2,6 @@ import api from '../api/client';
 
 import type {
   CreateProjectDto,
-  UpdateProjectDto,
   ProjectsResponse,
   Project,
 } from '../types/project';

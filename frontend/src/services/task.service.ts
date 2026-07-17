@@ -1,5 +1,4 @@
 import api from '../api/client';
-import type { Task } from '../types/task';
 export interface CreateTaskDto {
   title: string;
   description?: string;
