@@ -11,15 +11,15 @@ async function bootstrap() {
     origin: [
       'http://localhost:5173',
       'http://localhost:5174',
-      'https://tu-frontend.vercel.app',
+      'https://gestion-proyectos-frontend-sage.vercel.app',
     ],
     methods: [
       'GET',
-      'HEAD',
+      'POST',
       'PUT',
       'PATCH',
-      'POST',
       'DELETE',
+      'OPTIONS',
     ],
     credentials: true,
   });
